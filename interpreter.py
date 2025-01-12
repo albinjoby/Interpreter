@@ -12,13 +12,13 @@ label_tracker = {}
 
 for line in program_lines:
     parts = line.split()
-    if not parts:
+    if len(parts) == 0:
         continue
     opcode = parts[0]
 
     if opcode == "":
         continue
-    
+
     if opcode.endswith(":"):
         label_tracker[opcode[:-1]] = token_counter
         continue
@@ -38,6 +38,69 @@ for line in program_lines:
         label = parts[1]
         program.append(label)
         token_counter += 1
+    elif opcode == "JUMP.GT.0":
+        label = parts[1]
+        program.append(label)
+        token_counter += 1
 
 print(program)
 
+
+class Stack:
+    def __init__(self, size):
+        self.buf = [0 for _ in range(size)]
+        self.sp = -1
+
+    def push(self, number):
+        self.sp += 1
+        self.buf[self.sp] = number
+
+    def pop(self):
+        number = self.buf[self.sp]
+        self.sp -= 1
+        return number
+
+    def top(self):
+        return self.buf[self.sp]
+
+
+pc = 0
+stack = Stack(256)
+
+while program[pc] != "HALT":
+    opcode = program[pc]
+    pc += 1
+
+    if opcode == "PUSH":
+        number = program[pc]
+        pc += 1
+        stack.push(number)
+    elif opcode == "POP":
+        stack.pop()
+    elif opcode == "ADD":
+        a = stack.pop()
+        b = stack.pop()
+        stack.push(a + b)
+    elif opcode == "SUB":
+        a = stack.pop()
+        b = stack.pop()
+        stack.push(b - a)
+    elif opcode == "PRINT":
+        string_literal = program[pc]
+        pc += 1
+        print(string_literal)
+    elif opcode == "READ":
+        number = int(input())
+        stack.push(number)
+    elif opcode == "JUMP.EQ.0":
+        number = stack.top()
+        if number == 0:
+            pc = label_tracker[program[pc]]
+        else:
+            pc += 1
+    elif opcode == "JUMP.GT.0":
+        number = stack.top()
+        if number > 0:
+            pc = label_tracker[program[pc]]
+        else:
+            pc += 1
