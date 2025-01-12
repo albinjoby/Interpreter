@@ -42,6 +42,7 @@ for line in program_lines:
         label = parts[1]
         program.append(label)
         token_counter += 1
+    
 
 print(program)
 
